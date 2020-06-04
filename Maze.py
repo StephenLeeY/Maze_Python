@@ -1,10 +1,19 @@
+from MazeUI import *
+from queue import PriorityQueue
+import random
+import functools
+
 # Cell class representing one cell of a maze
+@functools.total_ordering
 class Cell():
     def __init__(self, location):
         self.location = location
         self.walls = []
         self.visited = False
         self.weight = 1
+
+    def __lt__(self, other):
+        return self.weight < getattr(other, 'weight', other)
 
     def __eq__(self, other):
         if not isinstance(other, Cell):
@@ -21,12 +30,16 @@ class Cell():
         return str(self.location)
 
 # Wall class representing a wall between two cells
+@functools.total_ordering
 class Wall():
     def __init__(self, parent_one, parent_two):
         self.parent_one = parent_one
         self.parent_two = parent_two
         self.open = False
         self.weight = 1
+
+    def __lt__(self, other):
+        return self.weight < getattr(other, 'weight', other)
 
     def __eq__(self, other):
         if not isinstance(other, Wall):
@@ -42,7 +55,7 @@ class Wall():
         return hash(self.parent_one, self.parent_two)
 
     def __repr__(self):
-        if open:
+        if self.open:
             return str(self.parent_one) + " <---> " + str(self.parent_two)
         else:
             return str(self.parent_one) + " <-/-> " + str(self.parent_two)
@@ -91,6 +104,34 @@ def init_maze(height, width):
             cellList[i][j].walls.append(Wall(cellList[i][j], cellList[i + 1][j]))
             cellList[i][j].walls.append(Wall(cellList[i][j], cellList[i][j - 1]))
             cellList[i][j].walls.append(Wall(cellList[i][j], cellList[i][j + 1]))
+    return cellList
+
+# Generates randomized walls of maze (Prim's Algorithm)
+def generate_maze(cellList):
+    height, width = len(cellList), len(cellList[0])
+
+    startCell = cellList[height - 1][width - 1]
+    startCell.visited = True
+
+    wallList = PriorityQueue()
+    for wall in startCell.walls:
+        wall.weight = random.randint(1, 10)
+        wallList.put(wall)
+
+    while not wallList.empty():
+        randomWall = wallList.get()
+
+        if not randomWall.parent_two.visited:
+            neighborCell = randomWall.parent_two
+            randomWall.open = True
+            neighborCell.walls[neighborCell.walls.index(randomWall)].open = True
+            neighborCell.visited = True
+
+            for wall in neighborCell.walls:
+                wall.weight = random.randint(1, 10)
+                wallList.put(wall)
+    return cellList
+
 
 def main():
     height, width = 0, 0
@@ -114,7 +155,11 @@ def main():
                 user_input = input("Please enter an integer in format: " +
                                    "<maze height> <maze width>: ").split()
 
-    # Initialize maze                               
+    # Initialize maze
     cellList = init_maze(height, width)
+    maze = generate_maze(cellList)
+
+    # Draw maze
+    draw(maze, "maze")
 
 main()
