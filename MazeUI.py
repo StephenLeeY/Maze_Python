@@ -42,29 +42,37 @@ def draw_maze(screen, cellList):
                         sys.exit()
 
 # Draw solution on top of maze
-def draw_solution():
-    pass
+def draw_solution(screen, path):
+    for cell in path:
+        pygame.draw.rect(screen, pygame.Color('green'), pygame.Rect(20 + cell.location[1] * 50, 20 + cell.location[0] * 50, 50, 50))
 
-def draw(cellList, command):
+def draw(cellList, command, path):
     height, width = len(cellList), len(cellList[0])
     SCREEN_WIDTH, SCREEN_HEIGHT = 40 + width * 50, 40 + height * 50
 
     screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])
     pygame.display.set_caption('Maze')
     screen.fill((255, 255, 255))
-    # button = pygame.Rect(100, 100, 50, 50)
+    button = pygame.Rect(SCREEN_WIDTH / 2, 0, 60, 20)
+
+    pygame.font.init()
+    mazeFont = pygame.font.SysFont('arial', 20)
+    buttonText = mazeFont.render("Solve!", False, (0, 0, 0))
 
     running = True
     while running:
+        draw_maze(screen, cellList)
+        pygame.draw.rect(screen, [200, 200, 200], button)
+        screen.blit(buttonText, (SCREEN_WIDTH / 2, 0))
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            # elif event.type == pygame.MOUSEBUTTONDOWN:
-            #     mouse_pos = event.pos
-            #     if button.collidepoint(mouse_pos):
-            #         #do stuff
-            #         pygame.draw.rect(screen, [255, 0, 0], pygame.Rect(200, 200, 50, 50))
-        draw_maze(screen, cellList)
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pos = event.pos
+                if button.collidepoint(mouse_pos):
+                    draw_solution(screen, path)
+                    pygame.display.flip()
 
         pygame.display.flip()
     pygame.quit()

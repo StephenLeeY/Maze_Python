@@ -132,6 +132,29 @@ def generate_maze(cellList):
                 wallList.put(wall)
     return cellList
 
+# Sovles maze using BFS
+def solve_maze(maze):
+    visited = set()
+    queue = PriorityQueue()
+
+    start = maze[0][0]
+    goal = maze[len(maze) - 1][len(maze[0]) - 1]
+
+    visited.add(start)
+    for wall in start.walls:
+        if wall.open:
+            queue.put([start, wall.parent_two])
+
+    while not queue.empty():
+        currPath = queue.get()
+        currCell = currPath[len(currPath) - 1]
+
+        for wall in currCell.walls:
+            if wall.parent_two == goal and wall.open:
+                return currPath + [goal]
+            elif not wall.parent_two in visited and wall.open:
+                queue.put(currPath + [wall.parent_two])
+                visited.add(wall.parent_two)
 
 def main():
     height, width = 0, 0
@@ -158,8 +181,9 @@ def main():
     # Initialize maze
     cellList = init_maze(height, width)
     maze = generate_maze(cellList)
+    solution = solve_maze(maze)
 
     # Draw maze
-    draw(maze, "maze")
+    draw(maze, "maze", solution)
 
 main()
